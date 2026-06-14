@@ -1,0 +1,124 @@
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SplitType {
+EQUAL
+UNEQUAL
+PERCENTAGE
+SHARE
+}
+
+model User {
+id                Int                @id @default(autoincrement())
+name              String
+email             String             @unique
+password          String
+
+groupsCreated     Group[]
+groupMemberships  GroupMember[]
+expensesPaid      Expense[]
+expenseSplits     ExpenseSplit[]
+settlementsPaid   Settlement[]       @relation("Payer")
+settlementsReceived Settlement[]     @relation("Receiver")
+comments          ExpenseComment[]
+
+createdAt         DateTime           @default(now())
+updatedAt         DateTime           @updatedAt
+}
+
+model Group {
+id          Int            @id @default(autoincrement())
+name        String
+
+createdById Int
+createdBy   User           @relation(fields: [createdById], references: [id])
+
+members     GroupMember[]
+expenses    Expense[]
+settlements Settlement[]
+
+createdAt   DateTime       @default(now())
+updatedAt   DateTime       @updatedAt
+}
+
+model GroupMember {
+id        Int      @id @default(autoincrement())
+
+groupId   Int
+userId    Int
+
+group     Group    @relation(fields: [groupId], references: [id])
+user      User     @relation(fields: [userId], references: [id])
+
+joinedAt  DateTime @default(now())
+
+@@unique([groupId, userId])
+}
+
+model Expense {
+id           Int              @id @default(autoincrement())
+description  String
+amount       Float
+splitType    SplitType
+
+groupId      Int
+paidById     Int
+
+group         Group           @relation(fields: [groupId], references: [id])
+paidBy        User            @relation(fields: [paidById], references: [id])
+
+splits        ExpenseSplit[]
+comments      ExpenseComment[]
+
+createdAt     DateTime        @default(now())
+updatedAt     DateTime        @updatedAt
+}
+
+model ExpenseSplit {
+id          Int       @id @default(autoincrement())
+
+expenseId   Int
+userId      Int
+
+expense     Expense   @relation(fields: [expenseId], references: [id])
+user        User      @relation(fields: [userId], references: [id])
+
+amount      Float?
+percentage  Float?
+shares      Int?
+}
+
+model Settlement {
+id          Int       @id @default(autoincrement())
+
+groupId      Int
+payerId      Int
+receiverId   Int
+amount       Float
+
+group         Group   @relation(fields: [groupId], references: [id])
+
+payer         User    @relation("Payer", fields: [payerId], references: [id])
+receiver      User    @relation("Receiver", fields: [receiverId], references: [id])
+
+createdAt     DateTime @default(now())
+}
+
+model ExpenseComment {
+id          Int       @id @default(autoincrement())
+
+expenseId   Int
+userId      Int
+
+message     String
+
+expense     Expense   @relation(fields: [expenseId], references: [id])
+user        User      @relation(fields: [userId], references: [id])
+
+createdAt   DateTime  @default(now())
+}
