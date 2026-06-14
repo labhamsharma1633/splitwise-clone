@@ -59,9 +59,9 @@ VITE_API_URL=
 
 ## Live Links
 
-Frontend: YOUR_VERCEL_URL
+Frontend: splitwise-clone-flax-three.vercel.app
 
-Backend: YOUR_RENDER_URL
+Backend: https://splitwise-backend-abrn.onrender.com
 
 ## AI Tools Used
 
