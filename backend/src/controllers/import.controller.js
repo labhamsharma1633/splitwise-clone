@@ -26,6 +26,7 @@ fs.createReadStream(req.file.path)
       });
 
       const reports = [];
+      const seenExpenses = new Set();
 
       results.forEach((row, index) => {
         // Empty row
@@ -39,6 +40,21 @@ fs.createReadStream(req.file.path)
           });
 
           return;
+        }
+
+        // Duplicate expense detection
+        const expenseKey = `${row.date}-${row.description}-${row.amount}-${row.paid_by}`;
+
+        if (seenExpenses.has(expenseKey)) {
+          reports.push({
+            sessionId: session.id,
+            rowNumber: index + 1,
+            issue: "Duplicate expense",
+            action: "Marked for manual review",
+            severity: "HIGH",
+          });
+        } else {
+          seenExpenses.add(expenseKey);
         }
 
         // Invalid amount
@@ -92,7 +108,7 @@ fs.createReadStream(req.file.path)
           });
         }
 
-        // USD conversion
+        // USD expense detection
         if (
           row.currency?.toUpperCase() === "USD"
         ) {
@@ -129,7 +145,7 @@ fs.createReadStream(req.file.path)
           });
         }
 
-        // Date validation
+        // Invalid date
         if (
           row.date &&
           isNaN(new Date(row.date).getTime())
@@ -142,6 +158,28 @@ fs.createReadStream(req.file.path)
             severity: "HIGH",
           });
         }
+
+        // Settlement logged as expense
+        if (
+          row.description
+            ?.toLowerCase()
+            .includes("settle") ||
+          row.description
+            ?.toLowerCase()
+            .includes("paid back") ||
+          row.notes
+            ?.toLowerCase()
+            .includes("payment")
+        ) {
+          reports.push({
+            sessionId: session.id,
+            rowNumber: index + 1,
+            issue:
+              "Settlement recorded as expense",
+            action: "Flagged for review",
+            severity: "MEDIUM",
+          });
+        }
       });
 
       if (reports.length > 0) {
@@ -150,7 +188,7 @@ fs.createReadStream(req.file.path)
         });
       }
 
-      // Delete uploaded file after processing
+      // Delete uploaded file
       fs.unlinkSync(req.file.path);
 
       res.status(200).json({
@@ -181,4 +219,4 @@ res.status(500).json({
 
 
 }
-};
+}
