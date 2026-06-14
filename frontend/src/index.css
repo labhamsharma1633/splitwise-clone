@@ -83,7 +83,8 @@ main {
   font-weight: 600;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #cbd5e1;
@@ -91,12 +92,13 @@ main {
   font: inherit;
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form textarea:focus {
   border-color: #0f766e;
   outline: 3px solid rgb(13 148 136 / 15%);
 }
 
-.auth-form button {
+.auth-form > button {
   margin-top: 0.85rem;
   padding: 0.8rem;
   border: 0;
@@ -108,7 +110,7 @@ main {
   font-weight: 700;
 }
 
-.auth-form button:hover:not(:disabled) {
+.auth-form > button:hover:not(:disabled) {
   background: #115e59;
 }
 
@@ -130,4 +132,179 @@ main {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
+}
+
+.dashboard-page {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  margin: 0.25rem 0 0.5rem;
+  color: #0f172a;
+  font-size: 2rem;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.primary-button,
+.secondary-button,
+.icon-button,
+.page-error button {
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.primary-button {
+  padding: 0.75rem 1rem;
+  color: #fff;
+  background: #0f766e;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #115e59;
+}
+
+.secondary-button {
+  padding: 0.75rem 1rem;
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.group-card {
+  min-height: 140px;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.group-card:hover {
+  border-color: #5eead4;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 8%);
+  transform: translateY(-2px);
+}
+
+.group-card h2 {
+  margin: 0 0 0.5rem;
+  color: #0f172a;
+  font-size: 1.125rem;
+}
+
+.group-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+.status-message,
+.empty-state,
+.page-error {
+  padding: 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0 0 0.5rem;
+}
+
+.empty-state p,
+.page-error p,
+.status-message {
+  color: #64748b;
+}
+
+.page-error button {
+  padding: 0.6rem 0.85rem;
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  padding: 1rem;
+  background: rgb(15 23 42 / 48%);
+  place-items: center;
+}
+
+.modal-card {
+  width: min(100%, 480px);
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgb(15 23 42 / 24%);
+}
+
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-heading h2 {
+  margin: 0 0 0.35rem;
+  color: #0f172a;
+}
+
+.modal-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.icon-button {
+  padding: 0;
+  color: #64748b;
+  background: transparent;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+  .dashboard-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
