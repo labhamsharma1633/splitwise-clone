@@ -8,6 +8,7 @@ export const createExpense = async (req, res) => {
       groupId,
       splitType,
       participants,
+      splits,
     } = req.body;
 
     const paidById = req.user.userId;
@@ -23,17 +24,55 @@ export const createExpense = async (req, res) => {
       },
     });
 
-    // Equal split
-    const splitAmount = amount / participants.length;
+    let expenseSplits = [];
 
-    const splits = participants.map((userId) => ({
-      expenseId: expense.id,
-      userId,
-      amount: splitAmount,
-    }));
+    // EQUAL Split
+    if (splitType === "EQUAL") {
+      const splitAmount = amount / participants.length;
+
+      expenseSplits = participants.map((userId) => ({
+        expenseId: expense.id,
+        userId,
+        amount: splitAmount,
+      }));
+    }
+
+    // UNEQUAL Split
+    else if (splitType === "UNEQUAL") {
+      expenseSplits = splits.map((split) => ({
+        expenseId: expense.id,
+        userId: split.userId,
+        amount: split.amount,
+      }));
+    }
+
+    // PERCENTAGE Split
+    else if (splitType === "PERCENTAGE") {
+      expenseSplits = splits.map((split) => ({
+        expenseId: expense.id,
+        userId: split.userId,
+        percentage: split.percentage,
+        amount: (amount * split.percentage) / 100,
+      }));
+    }
+
+    // SHARE Split
+    else if (splitType === "SHARE") {
+      const totalShares = splits.reduce(
+        (sum, split) => sum + split.shares,
+        0
+      );
+
+      expenseSplits = splits.map((split) => ({
+        expenseId: expense.id,
+        userId: split.userId,
+        shares: split.shares,
+        amount: (amount * split.shares) / totalShares,
+      }));
+    }
 
     await prisma.expenseSplit.createMany({
-      data: splits,
+      data: expenseSplits,
     });
 
     res.status(201).json({
@@ -41,6 +80,7 @@ export const createExpense = async (req, res) => {
       message: "Expense created successfully",
       expense,
     });
+
   } catch (error) {
     console.error(error);
 

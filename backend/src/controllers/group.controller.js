@@ -186,6 +186,7 @@ export const getGroupBalance = async (req, res) => {
 
     const balances = {};
 
+    // Expense calculation
     for (const expense of expenses) {
       const payerId = expense.paidById;
 
@@ -202,6 +203,21 @@ export const getGroupBalance = async (req, res) => {
 
         balances[split.userId] -= split.amount;
       }
+    }
+
+    // Settlement calculation
+    const settlements = await prisma.settlement.findMany({
+      where: {
+        groupId: Number(groupId),
+      },
+    });
+
+    for (const settlement of settlements) {
+      balances[settlement.payerId] =
+        (balances[settlement.payerId] || 0) - settlement.amount;
+
+      balances[settlement.receiverId] =
+        (balances[settlement.receiverId] || 0) + settlement.amount;
     }
 
     res.status(200).json({
