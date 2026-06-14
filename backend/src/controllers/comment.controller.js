@@ -45,3 +45,38 @@ export const addComment = async (req, res) => {
     });
   }
 };
+
+export const getComments = async (req, res) => {
+  try {
+    const { expenseId } = req.params;
+
+    const comments = await prisma.expenseComment.findMany({
+      where: {
+        expenseId: Number(expenseId),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      comments,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
