@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import GroupCard from '../components/GroupCard'
 import api, { getApiError } from '../services/api'
 
 function Dashboard() {
   const navigate = useNavigate()
+  const fileInputRef = useRef(null)
   const [groups, setGroups] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -15,6 +16,9 @@ function Dashboard() {
     name: '',
     description: '',
   })
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState('')
+  const [importResult, setImportResult] = useState(null)
 
   const fetchGroups = useCallback(async () => {
     setIsLoading(true)
@@ -29,6 +33,43 @@ function Dashboard() {
       setIsLoading(false)
     }
   }, [])
+
+  const handleImportClick = () => {
+    setImportError('')
+    setImportResult(null)
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+      setImportError('Please select a valid CSV file.')
+      event.target.value = ''
+      return
+    }
+
+    setImportError('')
+    setImportResult(null)
+    setIsImporting(true)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await api.post('/api/import/csv', formData)
+
+      const { importedRows, anomalies, reports } = response.data
+      setImportResult({ importedRows, anomalies, reports })
+      await fetchGroups()
+    } catch (requestError) {
+      setImportError(getApiError(requestError, 'Could not import CSV file.'))
+    } finally {
+      setIsImporting(false)
+      event.target.value = ''
+    }
+  }
 
   useEffect(() => {
     fetchGroups()
@@ -77,13 +118,23 @@ function Dashboard() {
           <h1>Groups</h1>
           <p>Manage shared expenses with friends and family.</p>
         </div>
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Create Group
-        </button>
+        <div className="nav-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? 'Importing...' : 'Import CSV'}
+          </button>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Create Group
+          </button>
+        </div>
       </div>
 
       {isLoading && <p className="status-message">Loading groups...</p>}
@@ -104,6 +155,49 @@ function Dashboard() {
         </div>
       )}
 
+      {importError && (
+        <div className="page-error" role="alert">
+          <p>{importError}</p>
+        </div>
+      )}
+
+      {importResult && (
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <h2>Import summary</h2>
+              <p>CSV import completed successfully.</p>
+            </div>
+          </div>
+          <div className="helper-text">
+            <p>Imported rows: {importResult.importedRows}</p>
+            <p>Anomalies: {importResult.anomalies}</p>
+          </div>
+          {importResult.reports && importResult.reports.length > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th>Row Number</th>
+                  <th>Issue</th>
+                  <th>Action</th>
+                  <th>Severity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {importResult.reports.map((report) => (
+                  <tr key={`${report.rowNumber}-${report.issue}`}>
+                    <td>{report.rowNumber}</td>
+                    <td>{report.issue}</td>
+                    <td>{report.action}</td>
+                    <td>{report.severity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
+
       {!isLoading && !error && groups.length > 0 && (
         <div className="group-grid">
           {groups.map((group) => (
@@ -115,6 +209,14 @@ function Dashboard() {
           ))}
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
 
       {isModalOpen && (
         <div className="modal-backdrop" onMouseDown={closeModal}>
