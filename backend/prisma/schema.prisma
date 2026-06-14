@@ -58,6 +58,7 @@ model GroupMember {
   user        User      @relation(fields: [userId], references: [id])
 
   joinedAt    DateTime  @default(now())
+  leftAt      DateTime?
 
   @@unique([groupId, userId])
   @@index([groupId])
@@ -129,4 +130,31 @@ model ExpenseComment {
   user          User       @relation(fields: [userId], references: [id])
 
   createdAt     DateTime   @default(now())
+}
+
+model ImportSession {
+  id          Int             @id @default(autoincrement())
+
+  fileName    String
+  status      String          @default("PENDING")
+
+  reports     ImportReport[]
+
+  createdAt   DateTime        @default(now())
+}
+
+model ImportReport {
+  id          Int             @id @default(autoincrement())
+
+  sessionId   Int
+  session     ImportSession   @relation(fields: [sessionId], references: [id])
+
+  rowNumber   Int
+  issue       String
+  action      String
+  severity    String
+
+  createdAt   DateTime        @default(now())
+
+  @@index([sessionId])
 }

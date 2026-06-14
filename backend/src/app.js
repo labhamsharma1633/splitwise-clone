@@ -6,6 +6,7 @@ import groupRoutes from "./routes/group.routes.js";
 import expenseRoutes from "./routes/expense.routes.js";
 import settlementRoutes from "./routes/settlement.routes.js"
 import commentRoutes from "./routes/comment.routes.js"
+import importRoutes from "./routes/import.routes.js";
 
 const app = express();
 
@@ -17,5 +18,6 @@ app.use("/api/groups", groupRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/settlements",settlementRoutes);
 app.use("/api",commentRoutes);
+app.use("/api/import",importRoutes);
 
 export default app;
