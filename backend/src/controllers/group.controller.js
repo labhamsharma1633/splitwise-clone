@@ -233,3 +233,47 @@ export const getGroupBalance = async (req, res) => {
     });
   }
 };
+export const removeMember = async (req, res) => {
+  try {
+    const { groupId, userId } = req.params;
+
+    // Check if member exists
+    const member = await prisma.groupMember.findUnique({
+      where: {
+        groupId_userId: {
+          groupId: Number(groupId),
+          userId: Number(userId),
+        },
+      },
+    });
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
+    await prisma.groupMember.delete({
+      where: {
+        groupId_userId: {
+          groupId: Number(groupId),
+          userId: Number(userId),
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Member removed successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

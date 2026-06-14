@@ -1,6 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
-import { createGroup,addMember,getUserGroups,getGroupBalance } from "../controllers/group.controller.js";
+import { createGroup,addMember,getUserGroups,getGroupBalance,removeMember } from "../controllers/group.controller.js";
 
 const router = express.Router();
 
@@ -15,6 +15,11 @@ router.get(
   "/:groupId/balance",
   authMiddleware,
   getGroupBalance
+);
+router.delete(
+  "/:groupId/members/:userId",
+  authMiddleware,
+  removeMember
 );
 
 export default router;
