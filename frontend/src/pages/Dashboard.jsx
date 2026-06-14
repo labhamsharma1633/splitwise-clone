@@ -1,19 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
-
-const GROUPS_URL = 'http://localhost:5000/api/groups'
-
-const getAuthConfig = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
-  },
-})
-
-const getErrorMessage = (requestError, fallback) =>
-  axios.isAxiosError(requestError)
-    ? requestError.response?.data?.message || fallback
-    : fallback
+import GroupCard from '../components/GroupCard'
+import api, { getApiError } from '../services/api'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -33,10 +21,10 @@ function Dashboard() {
     setError('')
 
     try {
-      const response = await axios.get(GROUPS_URL, getAuthConfig())
+      const response = await api.get('/api/groups')
       setGroups(response.data.groups)
     } catch (requestError) {
-      setError(getErrorMessage(requestError, 'Could not load your groups.'))
+      setError(getApiError(requestError, 'Could not load your groups.'))
     } finally {
       setIsLoading(false)
     }
@@ -68,13 +56,13 @@ function Dashboard() {
     setIsCreating(true)
 
     try {
-      await axios.post(GROUPS_URL, formData, getAuthConfig())
+      await api.post('/api/groups', formData)
       setIsModalOpen(false)
       setFormData({ name: '', description: '' })
       await fetchGroups()
     } catch (requestError) {
       setCreateError(
-        getErrorMessage(requestError, 'Could not create the group.'),
+        getApiError(requestError, 'Could not create the group.'),
       )
     } finally {
       setIsCreating(false)
@@ -119,15 +107,11 @@ function Dashboard() {
       {!isLoading && !error && groups.length > 0 && (
         <div className="group-grid">
           {groups.map((group) => (
-            <button
-              className="group-card"
+            <GroupCard
+              group={group}
               key={group.id}
-              type="button"
               onClick={() => navigate(`/groups/${group.id}`)}
-            >
-              <h2>{group.name}</h2>
-              <p>{group.description || 'No description'}</p>
-            </button>
+            />
           ))}
         </div>
       )}

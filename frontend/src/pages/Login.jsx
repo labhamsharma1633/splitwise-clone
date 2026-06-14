@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import api, { getApiError } from '../services/api'
 
 function Login() {
   const navigate = useNavigate()
@@ -26,19 +26,12 @@ function Login() {
     setIsSubmitting(true)
 
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        formData,
-      )
+      const response = await api.post('/api/auth/login', formData)
 
       localStorage.setItem('token', response.data.token)
       navigate('/dashboard')
     } catch (requestError) {
-      const message = axios.isAxiosError(requestError)
-        ? requestError.response?.data?.message
-        : null
-
-      setError(message || 'Login failed. Please try again.')
+      setError(getApiError(requestError, 'Login failed. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }
