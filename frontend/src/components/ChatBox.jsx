@@ -22,6 +22,29 @@ function ChatBox({ expenseId }) {
     return () => socket.off('newComment', handleComment)
   }, [expenseId])
 
+  // Try to load existing comments if the API exposes them.
+  useEffect(() => {
+    let mounted = true
+
+    const loadComments = async () => {
+      try {
+        const response = await api.get(`/api/expenses/${expenseId}/comments`)
+        if (!mounted) return
+        if (Array.isArray(response.data.comments)) {
+          setComments(response.data.comments)
+        }
+      } catch (err) {
+        // API may not expose a GET endpoint for comments; ignore silently
+      }
+    }
+
+    loadComments()
+
+    return () => {
+      mounted = false
+    }
+  }, [expenseId])
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')

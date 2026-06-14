@@ -63,7 +63,7 @@ function GroupDetails() {
 
     try {
       await api.post(`/api/groups/${numericGroupId}/members`, { userId })
-      await fetchGroup()
+      await Promise.all([fetchGroup(), fetchBalances()])
       setSuccessMessage('Member added successfully.')
       return true
     } catch (requestError) {
@@ -120,7 +120,7 @@ function GroupDetails() {
       })
       setSettlements((current) => [response.data.settlement, ...current])
       setSuccessMessage('Settlement recorded successfully.')
-      await fetchBalances()
+      await Promise.all([fetchBalances(), fetchGroup()])
       return true
     } catch (requestError) {
       setSettlementError(
@@ -131,6 +131,14 @@ function GroupDetails() {
       setIsCreatingSettlement(false)
     }
   }
+
+  // Clear transient success messages after a short delay
+  useEffect(() => {
+    if (!successMessage) return undefined
+
+    const id = setTimeout(() => setSuccessMessage(''), 3000)
+    return () => clearTimeout(id)
+  }, [successMessage])
 
   if (isLoading) {
     return <p className="status-message page-status">Loading group...</p>
