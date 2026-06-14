@@ -115,3 +115,53 @@ export const addMember = async (req, res) => {
     });
   }
 };
+export const getUserGroups = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const groups = await prisma.group.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      count: groups.length,
+      groups,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
